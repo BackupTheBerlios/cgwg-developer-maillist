@@ -1,0 +1,821 @@
+From dalheimer at itwm.fhg.de  Thu Mar  9 11:35:20 2006
+From: dalheimer at itwm.fhg.de (Mathias Dalheimer)
+Date: Thu, 09 Mar 2006 11:35:20 +0100
+Subject: [Cgwg-developer] Re: Grid workload generator
+In-Reply-To: <440C4347.6020800@uibk.ac.at>
+References: <4400411D.6030102@uibk.ac.at> <0DA4A531-C263-438B-8906-206FBA27C2E2@itwm.fhg.de> <440C4347.6020800@uibk.ac.at>
+Message-ID: <441004E8.3060606@itwm.fhg.de>
+
+Hi Marek,
+
+I uploaded a new version yesterday - it is capable of creating 
+coallocation jobs ("multijob" in the XML schema). Now, I want to deal 
+with the configuration of the workload (what resources, how many, ...). 
+BTW: I think we will provide a Java JAXB parser for the files soon.
+
+But back to your questions/comments...
+
+Marek Wieczorek wrote:
+> Thanks for the further details of your system. Now I think I understand
+> better your point of view, and I can more precisely think about my
+> contribution into your work. As you asked me for, I subscribed for the
+> mailing list and I created a BerliOS account for me. My BerliOS user
+> name is "najtmar" (i.e., "nightmare" written in polish transcription).
+
+OK, thank you. I'll CC you directly just in case the mailing list 
+doesn't work (its the first eMail on it).
+
+> Now I'll try to answer your questions.
+> 
+> If I understood your correctly, the way how you use your generator is as
+> follows:
+>  
+> GENERATOR -> workload description -> YOUR SCHEDULER -> schedule -> YOUR
+> SIMULATOR -> scheduling log -> YOUR ANALYSIS SCRIPT
+> 
+> If this is true, than we are probably thinking about two different
+> schedulers on two different levels. In your case, it is a kind of
+> just-in-time low-level scheduler, which deals with job requests as they
+> come, and schedules them into the resources. 
+
+Correct. Think of it as a kind of multi-site cluster scheduler with 
+matchmaking capabilities. But I would draw your picture this way:
+
+GENERATOR -> workload description -> SCHEDULER-SIMULATOR -> scheduling 
+log -> YOUR ANALYSIS SCRIPT
+
+We basically developed a standalone version of my scheduler just for 
+simulation purposes.
+
+> The scheduler which I am
+> working on is a higher-level look-ahead "metascheduler", which tries to
+> schedule full workflows in advance. So if I had to put my scheduler into
+> the sequence above, I would put it as a source of the workflow
+> description (MY_SCHEDULER -> workflow description -> ...), what is
+> consistent with you definition of the workflow module ("it integrates a
+> workflow description as it would occur as the user's input"), with the
+> exception that it makes also scheduling decisions at the same time. Of
+> course, the workflow module would be separated from the meta-scheduler.
+> In that case, the sequence would be as follows:
+> 
+> GENERATOR (only sequential jobs) -> WORKFLOW MODULE or alternatively MY
+> SCHEDULER -> YOUR SCHEDULER -> 
+
+So the output of your scheduler is a submission list of jobs? How does 
+this work? Do you rely on another scheduler? I would have expected the 
+following:
+
+GENERATOR -> WORKFLOW MODULE -> workload description -> YOUR SCHEDULER 
+-> scheduling log -> ANALYSIS
+
+> 
+> So my idea for the generator is at the moment like this:
+> 
+> 1.The generator receives some input. The input includes description of
+> some workflows.
+> 2.The generator generates the workload. Some tasks in the workload are
+> in fact workflow references.
+> 3.The workflow module replaces the workflow references with full
+> workflow descriptions. The result is represented in a uniform way
+> (extended standard workload model).
+> 4.Your scheduler takes the output from the generator, and does what it
+> was doing so far.
+
+Fine with me.
+
+> 
+> From my point of view, it would be important to be able to be use my
+> scheduler instead of the workflow module. In that case, the scheduling
+> would be done for some of the jobs already on this stage. Your scheduler
+> would not change these decisions, but only would take them into
+> consideration and include them to the scheduling log. It that way, I
+> would have opportunity to evaluate my scheduling, by evaluating your logs.
+> Let me know if I misunderstood something about your approach.
+
+This depends on the following: If your scheduler depends on a low-level 
+scheduler, this is fine. But I could also imagine that your replace my 
+scheduler with whatever implementation you want, e.g. a maui in 
+simulation mode. The workload generator should just be a piece of 
+software that generates workload files with different load levels. These 
+files can then be reused as input to any other system (which probably 
+needs to be wrapped in a parser...). It should be independent of the way 
+people evaluate their schedulers (using simulations, or using a real 
+production environment where they inject the workload jobs).
+
+> Network traffic is another issue. Simple network traffic generation
+> would be a rather simple task. IMHO, if we want to fully consider
+> workflows in your model, your simulator should also consider network
+> traffic simulation. ns-2 requires a concrete case (network
+> infrastructure + scheduled data transfers) to be defined, and then it
+> simulates the traffic. My colleague even suggested to apply a simpler
+> simulation method (for instance a so-called TCP equation) to simulate
+> the traffic, which is sufficient in most of the cases. Let me know if
+> you plan to consider network traffic in your simulator.
+
+Not at the moment, but this will be an issue sooner or later. I am not 
+sure how to model this yet: The scheduler's decisions may change the 
+network load during the simulation. Therefore, we would need a way of 
+keeping the current network state during the simulation available and 
+dynamic. I am thinking of having a communication between the network 
+simulator (probably ns-2) and my scheduler simulation:
+
+
+---------   -- current network load info --->	-------------
+| ns-2  |                                       | calana    |
+---------   <--- change in network usage ----   -------------
+
+So I am not sure whether this should be part of the workload description 
+or another little program that can be configured. If you have any ideas 
+on this, I would love to hear them.
+
+> Answering your question about the "multiprogramming level for the 
+> scheduler", I meant here how many jobs can be scheduled at the same time
+> on the same CPU (just one or also more). But maybe this is out of scope
+> of your model.
+
+Ah, ok. Yes, this is currently out of scope. But it can easily be added 
+to the workload generator.
+
+> Let me know what you think about all these ideas. In the meanwhile, I
+> will read the documentation of your tool, when it appears on the project
+> webpage.
+
+Uhh, it is dangerous to wait for the documentation ;-) I need to get the 
+API documentation complete. But the script is so simple that you may 
+want to check the workloadgen.rb file.
+
+Cheers,
+Mathias
+
+
+From Marek.Wieczorek at uibk.ac.at  Fri Mar 10 11:47:15 2006
+From: Marek.Wieczorek at uibk.ac.at (Marek Wieczorek)
+Date: Fri, 10 Mar 2006 11:47:15 +0100
+Subject: [Cgwg-developer] Re: Grid workload generator
+In-Reply-To: <441004E8.3060606@itwm.fhg.de>
+References: <4400411D.6030102@uibk.ac.at> <0DA4A531-C263-438B-8906-206FBA27C2E2@itwm.fhg.de> <440C4347.6020800@uibk.ac.at> <441004E8.3060606@itwm.fhg.de>
+Message-ID: <1141987635.4411593324baa@web-mail1.uibk.ac.at>
+
+Hi Mathias,
+
+Thanks for the comments. I try to answer your questions below.
+
+Quoting Mathias Dalheimer <dalheimer at itwm.fhg.de>:
+
+> > The scheduler which I am
+> > working on is a higher-level look-ahead "metascheduler", which tries to
+> > schedule full workflows in advance. So if I had to put my scheduler into
+> > the sequence above, I would put it as a source of the workflow
+> > description (MY_SCHEDULER -> workflow description -> ...), what is
+> > consistent with you definition of the workflow module ("it integrates a
+> > workflow description as it would occur as the user's input"), with the
+> > exception that it makes also scheduling decisions at the same time. Of
+> > course, the workflow module would be separated from the meta-scheduler.
+> > In that case, the sequence would be as follows:
+> >
+> > GENERATOR (only sequential jobs) -> WORKFLOW MODULE or alternatively MY
+> > SCHEDULER -> YOUR SCHEDULER ->
+>
+> So the output of your scheduler is a submission list of jobs? How does
+> this work? Do you rely on another scheduler? I would have expected the
+> following:
+>
+> GENERATOR -> WORKFLOW MODULE -> workload description -> YOUR SCHEDULER
+> -> scheduling log -> ANALYSIS
+>
+
+The point here is that my scheduler is not integrated with any simulator, and
+relies on an underlying environment even more than yours. I would say that it
+is a "workflow-oriented" scheduler rather than a "workload-oriented" one. I
+mean here that a single scheduler instance is responsible for scheduling of a
+single workflow, being not aware of the other background workload being
+generated on the Grid.
+ In this case, I can imagine that my scheduler generates some workload which
+would be subsequently processed by another scheduler (for instance yours)
+without changing main mapping decisions. The output from your
+scheduler/simulator would give me all information which I need. Analysis of the
+output from my scheduler would not allow me to evaluate my scheduling properly,
+since it does not consider the external load which can affect the execution.
+ I would think about my scheduler as an [optional] part of the workflow module.
+
+> >
+> > From my point of view, it would be important to be able to be use my
+> > scheduler instead of the workflow module. In that case, the scheduling
+> > would be done for some of the jobs already on this stage. Your scheduler
+> > would not change these decisions, but only would take them into
+> > consideration and include them to the scheduling log. It that way, I
+> > would have opportunity to evaluate my scheduling, by evaluating your logs.
+> > Let me know if I misunderstood something about your approach.
+>
+> This depends on the following: If your scheduler depends on a low-level
+> scheduler, this is fine. But I could also imagine that your replace my
+> scheduler with whatever implementation you want, e.g. a maui in
+> simulation mode. The workload generator should just be a piece of
+> software that generates workload files with different load levels. These
+> files can then be reused as input to any other system (which probably
+> needs to be wrapped in a parser...). It should be independent of the way
+> people evaluate their schedulers (using simulations, or using a real
+> production environment where they inject the workload jobs).
+>
+
+The situation in my group is the following: the scheduler is a part of a bigger
+system, and produces schedules for a real execution engine. I'm not really
+happy to be so strictly dependent on the real production environment, because
+it limits my activities and does not allow me to evaluate my scheduler
+properly. Therefore, I like very much the idea of developing a more generic
+workflow representation which can be accepted by your environment and by my
+scheduler at the same time. As you wrote, it would make me independent of the
+underlying environment, and would allow me to test my scheduler more properly.
+
+>
+> Not at the moment, but this will be an issue sooner or later. I am not
+> sure how to model this yet: The scheduler's decisions may change the
+> network load during the simulation. Therefore, we would need a way of
+> keeping the current network state during the simulation available and
+> dynamic. I am thinking of having a communication between the network
+> simulator (probably ns-2) and my scheduler simulation:
+>
+>
+> ---------   -- current network load info --->	-------------
+> | ns-2  |                                       | calana    |
+> ---------   <--- change in network usage ----   -------------
+>
+> So I am not sure whether this should be part of the workload description
+> or another little program that can be configured. If you have any ideas
+> on this, I would love to hear them.
+>
+
+AFAIK, the problem here is that ns-2 does not work in an interactive mode, but
+rather in a batch mode. It allows to define a static network situation and
+simulate the trafic in such environment. However, we can think together about
+possible integration and prepare a draft solution for the ns-2 workshop this
+year.
+
+I'll try to spend some time learning how to use your tool. I'll let you know if
+I have any other ideas.
+
+cheers,
+Marek
+
+
+From Marek.Wieczorek at uibk.ac.at  Thu Mar 16 10:54:58 2006
+From: Marek.Wieczorek at uibk.ac.at (Marek Wieczorek)
+Date: Thu, 16 Mar 2006 10:54:58 +0100
+Subject: [Cgwg-developer] Workflow Module for Calana, a draft
+Message-ID: <441935F2.7010606@uibk.ac.at>
+
+Dear Calana developers,
+
+I did first basic tests with Calana, and I was thinking about possible
+extensions of the tool in order to consider also workflow load and
+support workflow schedulers. I prepared a first draft where I collected
+all my ideas, including a proposed system architecture and a list of
+tasks which, IMHO, should be done in order to implement the system. I
+attach the draft which I hope would be a good starting point to the
+discussion about possible future development of the tool in this direction.
+ Basically, I see Calana as a toolkit for grid scheduler evaluation. In
+case of a workflow scheduler like mine, it also means that a simulator
+should be an important part of the toolkit. In the draft I specified how
+I see interaction between different elements of a system, and also
+proposed some extension to the existing XML schema in order to support
+workflows. I send an example XML data file rather than an XML schema
+specification, also because I find the former more appropriate to
+explain my ideas.
+ I would much appreciate any comments to my draft.
+
+best regards,
+Marek
+
+-- 
+Marek Wieczorek
+Distributed and Parallel Systems Group
+Institute of Computer Science, University of Innsbruck
+
+Technikerstrasse 21a, A-6020 Innsbruck, Austria
+tel: +43-512-507-96831
+fax: +43-512-507-2758
+
+-------------- next part --------------
+An embedded and charset-unspecified text was scrubbed...
+Name: draft01.txt
+URL: <https://lists.berlios.de/pipermail/cgwg-developer/attachments/20060316/1ea78bee/attachment.txt>
+-------------- next part --------------
+A non-text attachment was scrubbed...
+Name: grid_schema.xml
+Type: text/xml
+Size: 4709 bytes
+Desc: not available
+URL: <https://lists.berlios.de/pipermail/cgwg-developer/attachments/20060316/1ea78bee/attachment.xml>
+
+From md at gonium.net  Mon Mar 20 14:56:29 2006
+From: md at gonium.net (Mathias Dalheimer)
+Date: Mon, 20 Mar 2006 14:56:29 +0100
+Subject: [Cgwg-developer] Workflow Module for Calana, a draft
+In-Reply-To: <441935F2.7010606@uibk.ac.at>
+References: <441935F2.7010606@uibk.ac.at>
+Message-ID: <441EB48D.4000209@gonium.net>
+
+Hi all!
+
+Marek, thank you for your effort. I think you just wrote a huge 
+workplan, and I am concerned on how we should start to implement this 
+all. But we'll see. I make my other comments inline...
+
+Marek Wieczorek wrote:
+> Dear Calana developers,
+> 
+> I did first basic tests with Calana, and I was thinking about possible
+> extensions of the tool in order to consider also workflow load and
+> support workflow schedulers. I prepared a first draft where I collected
+> all my ideas, including a proposed system architecture and a list of
+> tasks which, IMHO, should be done in order to implement the system. I
+> attach the draft which I hope would be a good starting point to the
+> discussion about possible future development of the tool in this direction.
+>  Basically, I see Calana as a toolkit for grid scheduler evaluation. In
+> case of a workflow scheduler like mine, it also means that a simulator
+> should be an important part of the toolkit. In the draft I specified how
+> I see interaction between different elements of a system, and also
+> proposed some extension to the existing XML schema in order to support
+> workflows. I send an example XML data file rather than an XML schema
+> specification, also because I find the former more appropriate to
+> explain my ideas.
+
+Regarding the simulator: I think I can make the simulation of calana a 
+part of CGWG. We are here in the state of finishing the simulation's 
+implementation.
+
+
+> ------------------------------------------------------------------------
+> 
+> Proposed architecture:
+> 
+> -------------   /
+> | Workload  |   / Existing workload generator.
+> | Generator |   /
+> -------------   /
+>       |
+>       v
+>     grid
+>   workload
+>       |
+>       v
+> ------------    / Generates workflow load.
+> | Workflow |    / Adds workflows to the workload, by replacing parts of
+> |  Module  |    / the sequential workload with equivalent amount of workflow
+> ------------    / load.
+>       |
+>       v
+> grid workload
+>  including
+>  workflows
+>       |
+>       v
+> -------------   /
+> | Workflow  |   / Optional component. For instance, my scheduler.
+> | Scheduler |   /
+> -------------   /
+>       |
+>       v
+>   partially
+>   scheduled
+>    workload
+>   (only some
+> workflows are
+>   scheduled)
+>       |
+>       v
+> -------------   /
+> | Workload  |   / Existing scheduler.
+> | Scheduler |   /
+> -------------   /
+>       |
+>       v
+> fully scheduled
+>   workload
+>       |
+>       v
+> -------------   / Extended version of the existing simulator:
+> | Simulator |   / recognizes dependencies and data transfers.
+> -------------   / Integrated with ns-2
+
+
+The workload scheduler and the simulation are an integral part of 
+software right now. Although the integration of network and data 
+transfers are out of scope for now, it will become important in the 
+future. We already have the notion of a "task" which can include data 
+transfers and jobs.
+
+> 
+> Tasks to be done:
+> -----------------
+> 
+> 1.To define the XML Schema for the problem.
+> -------------
+> 
+>>Importance:
+> 
+> -------------
+> crucial
+> --------------
+> 
+>>Description:
+> 
+> --------------
+> To specify the full schema to be applied in Calana.
+> The schema may include the specification of:
+> * grid nodes,
+> * data links,
+> * computational tasks,
+> * data transfer tasks,
+> * workflows,
+> * cost evaluation.
+> -------------------
+> 
+>>Estimated effort:
+> 
+> -------------------
+> small; can be based on the attached draft
+
+I hesitate to define a schema for grid nodes and data links. This is 
+currently done within the simulator in the form of java code. I would 
+like to leave it this way because it is not clear to me what kind of 
+setup will be used by different groups. Therefore, I choose not to 
+implement a resource description language - scripting is just more 
+flexible here. But I agree with the principles of your network and 
+compute resource description.
+
+For the other parts: We have a notion of computational tasks. Data 
+transfer tasks should be simple to do (your notion is fine to me). I 
+would like to suggest that you deal with the workflows, based on your 
+experience.
+
+Regarding the cost evaluation: In some cases of calana setups, you use 
+dynamic pricing for the experiments. Since pricing includes strategies 
+on how to compose prices, I would strongly vote against a fixed notion 
+on pricing issues. It seems to be really complex to do pricing. But 
+maybe I got this wrong: Is the executioncost tag your description of the 
+user's preference? This would be fine for me (actually, the current 
+implementation does something like that).
+
+Same goes for reservations. This is - in my mind - something the 
+scheduler should dynamically decide, therefore it should not be encoded 
+in the workload generator.
+
+> 
+> 2.To implement the Workflow Module.
+> -------------
+> 
+>>Importance:
+> 
+> -------------
+> crucial
+> --------------
+> 
+>>Description:
+> 
+> --------------
+> To implement a component which reads grid workload generated by the Generator
+> and replaces parts of it with some workflow load, in the way that the output
+> load is equivalent to the input load with respect to the workload level.
+>  I believe, this approach would simulate the real grid behavior quite
+> realistically.
+> -------------------
+> 
+>>Estimated effort:
+> 
+> -------------------
+> small
+
+I think this would be really beneficial to the current implementation!
+
+
+> 3.To implement workflow processing in the Scheduler and the Simulator.
+> -------------
+> 
+>>Importance:
+> 
+> -------------
+> crucial
+> --------------
+> 
+>>Description:
+> 
+> --------------
+> To consider dependencies between tasks when scheduling and simulating.
+> -------------------
+> 
+>>Estimated effort:
+> 
+> -------------------
+> small/moderate
+
+This is currently not implemented in the simulation of calana. But as 
+you said, it should not be so difficult to add.
+
+
+
+> 
+> 4.To consider network traffic in the Workflow Scheduler and the Simulator.
+> -------------
+> 
+>>Importance:
+> 
+> -------------
+> necessary
+> --------------
+> 
+>>Description:
+> 
+> --------------
+> To consider data transfer tasks when scheduling and simulating. Integration
+> with ns-2.
+>  Specification of the grid infrastructure is generated for ns-2, based on the
+> available XML description. The Simulator queries ns-2 each time when data
+> transfer times should be estimated.
+> -------------------
+> 
+>>Estimated effort:
+> 
+> -------------------
+> considerable, but not huge
+
+Currently, this is not implemented as well. I have no idea how to 
+describe TCP connections, but I think it is simply a matter of finding 
+the right person to ask ;-)
+
+> 
+> 5.To consider advance reservation in the Scheduler and the Simulator.
+> -------------
+> 
+>>Importance:
+> 
+> -------------
+> optional
+> --------------
+> 
+>>Description:
+> 
+> --------------
+> To consider advance reservations when scheduling and simulating.
+> -------------------
+> 
+>>Estimated effort:
+> 
+> -------------------
+> small
+
+Actually, this is already implemented in the calana simulation since we 
+need it for coallocating resources. However, you cannot ask for a 
+specific reservation time at the moment - the simulator just makes shure 
+you'll get reservations that are optimal to the users specification.
+
+
+> 
+> 6.To implement event-driven workflow rescheduling.
+> -------------
+> 
+>>Importance:
+> 
+> -------------
+> optional
+> --------------
+> 
+>>Description:
+> 
+> --------------
+> It seems to be hard, but it would pay off. The idea is to include some
+> contracts (probably only for execution time it would be feasible) to
+> the workflow, which should be subsequently checked by the simulator. Whenever
+> a contract is violated (an execution time is exceeded), rescheduling is
+> triggered.
+>  This feature would make the tool really unique.
+> -------------------
+> 
+>>Estimated effort:
+> 
+> -------------------
+> large
+
+
+With calana, this shouldn't be so hard because we already have a 
+protocol for this. But for us, this is out of scope for the moment.
+
+
+> 
+> 
+> ------------------------------------------------------------------------
+> 
+> <!--
+> Data links
+> 
+> Description:
+> Data links in the grid.
+> 
+> Content:
+> * 2 enpoints (2 grid nodes) in the link.
+> * characteristics of the link (bandwidth, latency, ...)
+> -->
+> <dataLinks>
+> 	<dataLink id="56">
+> 		<endpointRef1>
+> 			<gridNodeRef refID="45"/>
+> 		</endpointRef1>
+> 		<endpointRef2>
+> 			<computationalNodeRef refID="45"/>
+> 		</endpointRef2>
+> 		<bandwidth value="10Mbps"/>
+> 		<latency value="10ms"/>
+> 	</dataLink>
+> </dataLinks>
+> 
+> <!--
+> Grid nodes
+> 
+> Description:
+> Specification of the elements of the grid. The nodes can be either
+> more generic "grid nodes" (i.e., a network hub), or more specific
+> entities (networkSwitchNode, networkRouterNode, computationalNode, ...).
+> I'm not sure which types of grid nodes are really needed.
+> 
+> Content:
+> * empty?
+> -->
+> <gridNodes>
+> 	<gridNode id="123"/>
+> 	<networkSwitch id="32"/>
+> 	<networkRouter id="43"/>
+> 	<computationalNode id="56"/>
+> </gridNodes>
+> 
+> <!--
+> Computational clusters
+> 
+> Description:
+> A composite grid node, consisting of many computational nodes.
+> 
+> Content:
+> * list of the computational nodes which are the components of the cluster.
+> -->
+> <computationalClusters>
+> 	<computationalCluster>
+> 		<computationalNodeRef refID="57"/>
+> 		<computationalNodeRef refID="80"/>
+> 	</computationalCluster>
+> </computationalClusters>
+> 
+> <!--
+> Network areas
+> 
+> Description:
+> An auxiliary construct which facilitates the user to define data
+> links between grid nodes (it's easier to specify a single
+> "network area" for a cluster of 64 nodes than to specify all
+> 64 links separately).
+> 
+> Content:
+> * a list of computational nodes (single nodes or clusters),
+> * characteristics of all the links (bandwidth, latency, ...)
+> -->
+> <dataLinks>
+> 	<dataLink id="35">
+> 		<endpointRefs>
+> 			<computationalNodeRef refID="45"/>
+> 			<computationalNodeRef refID="45"/>
+> 			<computationalClusterRef refID="45"/>
+> 			<computationalNodeRef refID="45"/>
+> 		</endpointRefs>
+> 		<bandwidth value="10Mbps"/>
+> 		<latency value="10ms"/>
+> 	</dataLink>
+> </dataLinks>
+> 
+> <!--
+> Data transfers
+> 
+> Description:
+> Data transfers between grid nodes.
+> 
+> Content:
+> * data size,
+> * 2 jobs (source and sink) between which the transfer is performed
+> -->
+> <dataTransfers>
+> 	<dataTransfer id="85">
+> 		<dataSize value="10MB"/>
+> 		<sourceJob>
+> 			<jobRef refID="14"/>
+> 		</sourceJob>
+> 		<sinkJob>
+> 			<jobRef refID="52"/>
+> 		</sinkJob>
+> 	</dataTransfer>
+> </dataTransfers>
+> 
+> <!--
+> Dependencies
+> 
+> Description:
+> Dependency between 2 nodes (tasks or data transfers) within a workflow.
+> 
+> Content:
+> * references to the begin node and to the end node of the dependence,
+> -->
+> <dependencies>
+> 	<dependence id="85">
+> 		<beginNodeRef refID="63"/>
+> 		<endNodeRef refID="96"/>
+> 	</dependence>
+> </dependencies>
+> 
+> <!--
+> Workflows
+> 
+> Description:
+> A workflow composed of tasks, data transfers, and dependencies between them.
+> 
+> Content:
+> * set of all tasks,
+> * set of all data transfers,
+> * set of all dependencies.
+> -->
+> <workflows>
+> 	<workflow id="74">
+> 		<tasks>
+> 			<taskRef id="59"/>
+> 			<taskRef id="70"/>
+> 		</tasks>
+> 		<dataTransfers>
+> 			<dataTransferRef id="48"/>
+> 			<dataTransferRef id="37"/>
+> 		</dataTransfers>
+> 		<dependencies>
+> 			<dependenceRef id="26"/>
+> 			<dependenceRef id="62"/>
+> 		</dependencies>
+> 	</workflow>
+> </workflows>
+> 
+> <!--
+> Execution costs
+> 
+> Description:
+> Costs of execution of different tasks on different resources, with regards
+> to different evaluation metrics (execution time, economic cost, reliability).
+> 
+> Content:
+> * task for which the cost is specified,
+> * execution costs for different computational nodes,
+>   * reference to a node (single node or a cluster) where the task can be executed
+>   * execution costs with respect to different metrics
+>   	* metric name,
+>   	* execution cost.
+> -->
+> <executionCosts>
+> 	<executionCost>
+> 		<taskRef refID="36"/>
+> 		<computationalNodeVariants>
+> 			<computationalNodeVariant>
+> 				<computationalNodeRef refID="28"/>
+> 				<metricVariants>
+> 					<metricVariant>
+> 						<metricName value="ExecutionTime"/>
+> 						<value value="1000"/>
+> 					</metricVariant>
+> 					<metricVariant>
+> 						<metricName value="EconomicCost"/>
+> 						<value value="100"/>
+> 					</metricVariant>
+> 				</metricVariants>
+> 			</computationalNodeVariant>
+> 		</computationalNodeVariants>
+> 	</executionCost>
+> </executionCosts>
+> 
+> <!--
+> Computational node reservations
+> 
+> Description:
+> Reservation of a particular computational node for a particular user within
+> a particular time interval.
+> 
+> Content:
+> * computational resource (single resource of a cluster),
+> * user for whom the resource is reserved,
+> * begin and end time of the reservation.
+> -->
+> <computationalNodeReservations>
+> 	<computationalNodeReservation>
+> 		<gridNodeRef>
+> 			<computationalNodeRef refID="39"/>
+> 		</gridNodeRef>
+> 		<userRef refID="62"/>
+> 		<beginTime value="2006-07-12 12:34:45"/>
+> 		<endTime value="2006-07-13 21:43:54"/>
+> 	</computationalNodeReservation>
+> </computationalNodeReservations>
+
+
+-- 
+Wenn Word f?r l?ngere Texte gedacht w?re, w?rde es Book heissen.
+
+

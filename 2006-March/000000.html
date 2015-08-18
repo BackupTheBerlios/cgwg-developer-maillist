@@ -1,0 +1,199 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Cgwg-developer] Re: Grid workload generator
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/cgwg-developer/2006-March/index.html" >
+   <LINK REL="made" HREF="mailto:cgwg-developer%40lists.berlios.de?Subject=Re%3A%20%5BCgwg-developer%5D%20Re%3A%20Grid%20workload%20generator&In-Reply-To=%3C441004E8.3060606%40itwm.fhg.de%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   
+   <LINK REL="Next"  HREF="000001.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Cgwg-developer] Re: Grid workload generator</H1>
+    <B>Mathias Dalheimer</B> 
+    <A HREF="mailto:cgwg-developer%40lists.berlios.de?Subject=Re%3A%20%5BCgwg-developer%5D%20Re%3A%20Grid%20workload%20generator&In-Reply-To=%3C441004E8.3060606%40itwm.fhg.de%3E"
+       TITLE="[Cgwg-developer] Re: Grid workload generator">dalheimer at itwm.fhg.de
+       </A><BR>
+    <I>Thu Mar  9 11:35:20 CET 2006</I>
+    <P><UL>
+        
+        <LI>Next message: <A HREF="000001.html">[Cgwg-developer] Re: Grid workload generator
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#0">[ date ]</a>
+              <a href="thread.html#0">[ thread ]</a>
+              <a href="subject.html#0">[ subject ]</a>
+              <a href="author.html#0">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi Marek,
+
+I uploaded a new version yesterday - it is capable of creating 
+coallocation jobs (&quot;multijob&quot; in the XML schema). Now, I want to deal 
+with the configuration of the workload (what resources, how many, ...). 
+BTW: I think we will provide a Java JAXB parser for the files soon.
+
+But back to your questions/comments...
+
+Marek Wieczorek wrote:
+&gt;<i> Thanks for the further details of your system. Now I think I understand
+</I>&gt;<i> better your point of view, and I can more precisely think about my
+</I>&gt;<i> contribution into your work. As you asked me for, I subscribed for the
+</I>&gt;<i> mailing list and I created a BerliOS account for me. My BerliOS user
+</I>&gt;<i> name is &quot;najtmar&quot; (i.e., &quot;nightmare&quot; written in polish transcription).
+</I>
+OK, thank you. I'll CC you directly just in case the mailing list 
+doesn't work (its the first eMail on it).
+
+&gt;<i> Now I'll try to answer your questions.
+</I>&gt;<i> 
+</I>&gt;<i> If I understood your correctly, the way how you use your generator is as
+</I>&gt;<i> follows:
+</I>&gt;<i>  
+</I>&gt;<i> GENERATOR -&gt; workload description -&gt; YOUR SCHEDULER -&gt; schedule -&gt; YOUR
+</I>&gt;<i> SIMULATOR -&gt; scheduling log -&gt; YOUR ANALYSIS SCRIPT
+</I>&gt;<i> 
+</I>&gt;<i> If this is true, than we are probably thinking about two different
+</I>&gt;<i> schedulers on two different levels. In your case, it is a kind of
+</I>&gt;<i> just-in-time low-level scheduler, which deals with job requests as they
+</I>&gt;<i> come, and schedules them into the resources. 
+</I>
+Correct. Think of it as a kind of multi-site cluster scheduler with 
+matchmaking capabilities. But I would draw your picture this way:
+
+GENERATOR -&gt; workload description -&gt; SCHEDULER-SIMULATOR -&gt; scheduling 
+log -&gt; YOUR ANALYSIS SCRIPT
+
+We basically developed a standalone version of my scheduler just for 
+simulation purposes.
+
+&gt;<i> The scheduler which I am
+</I>&gt;<i> working on is a higher-level look-ahead &quot;metascheduler&quot;, which tries to
+</I>&gt;<i> schedule full workflows in advance. So if I had to put my scheduler into
+</I>&gt;<i> the sequence above, I would put it as a source of the workflow
+</I>&gt;<i> description (MY_SCHEDULER -&gt; workflow description -&gt; ...), what is
+</I>&gt;<i> consistent with you definition of the workflow module (&quot;it integrates a
+</I>&gt;<i> workflow description as it would occur as the user's input&quot;), with the
+</I>&gt;<i> exception that it makes also scheduling decisions at the same time. Of
+</I>&gt;<i> course, the workflow module would be separated from the meta-scheduler.
+</I>&gt;<i> In that case, the sequence would be as follows:
+</I>&gt;<i> 
+</I>&gt;<i> GENERATOR (only sequential jobs) -&gt; WORKFLOW MODULE or alternatively MY
+</I>&gt;<i> SCHEDULER -&gt; YOUR SCHEDULER -&gt; 
+</I>
+So the output of your scheduler is a submission list of jobs? How does 
+this work? Do you rely on another scheduler? I would have expected the 
+following:
+
+GENERATOR -&gt; WORKFLOW MODULE -&gt; workload description -&gt; YOUR SCHEDULER 
+-&gt; scheduling log -&gt; ANALYSIS
+
+&gt;<i> 
+</I>&gt;<i> So my idea for the generator is at the moment like this:
+</I>&gt;<i> 
+</I>&gt;<i> 1.The generator receives some input. The input includes description of
+</I>&gt;<i> some workflows.
+</I>&gt;<i> 2.The generator generates the workload. Some tasks in the workload are
+</I>&gt;<i> in fact workflow references.
+</I>&gt;<i> 3.The workflow module replaces the workflow references with full
+</I>&gt;<i> workflow descriptions. The result is represented in a uniform way
+</I>&gt;<i> (extended standard workload model).
+</I>&gt;<i> 4.Your scheduler takes the output from the generator, and does what it
+</I>&gt;<i> was doing so far.
+</I>
+Fine with me.
+
+&gt;<i> 
+</I>&gt;<i> From my point of view, it would be important to be able to be use my
+</I>&gt;<i> scheduler instead of the workflow module. In that case, the scheduling
+</I>&gt;<i> would be done for some of the jobs already on this stage. Your scheduler
+</I>&gt;<i> would not change these decisions, but only would take them into
+</I>&gt;<i> consideration and include them to the scheduling log. It that way, I
+</I>&gt;<i> would have opportunity to evaluate my scheduling, by evaluating your logs.
+</I>&gt;<i> Let me know if I misunderstood something about your approach.
+</I>
+This depends on the following: If your scheduler depends on a low-level 
+scheduler, this is fine. But I could also imagine that your replace my 
+scheduler with whatever implementation you want, e.g. a maui in 
+simulation mode. The workload generator should just be a piece of 
+software that generates workload files with different load levels. These 
+files can then be reused as input to any other system (which probably 
+needs to be wrapped in a parser...). It should be independent of the way 
+people evaluate their schedulers (using simulations, or using a real 
+production environment where they inject the workload jobs).
+
+&gt;<i> Network traffic is another issue. Simple network traffic generation
+</I>&gt;<i> would be a rather simple task. IMHO, if we want to fully consider
+</I>&gt;<i> workflows in your model, your simulator should also consider network
+</I>&gt;<i> traffic simulation. ns-2 requires a concrete case (network
+</I>&gt;<i> infrastructure + scheduled data transfers) to be defined, and then it
+</I>&gt;<i> simulates the traffic. My colleague even suggested to apply a simpler
+</I>&gt;<i> simulation method (for instance a so-called TCP equation) to simulate
+</I>&gt;<i> the traffic, which is sufficient in most of the cases. Let me know if
+</I>&gt;<i> you plan to consider network traffic in your simulator.
+</I>
+Not at the moment, but this will be an issue sooner or later. I am not 
+sure how to model this yet: The scheduler's decisions may change the 
+network load during the simulation. Therefore, we would need a way of 
+keeping the current network state during the simulation available and 
+dynamic. I am thinking of having a communication between the network 
+simulator (probably ns-2) and my scheduler simulation:
+
+
+---------   -- current network load info ---&gt;	-------------
+|<i> ns-2  |                                       | calana    |
+</I>---------   &lt;--- change in network usage ----   -------------
+
+So I am not sure whether this should be part of the workload description 
+or another little program that can be configured. If you have any ideas 
+on this, I would love to hear them.
+
+&gt;<i> Answering your question about the &quot;multiprogramming level for the 
+</I>&gt;<i> scheduler&quot;, I meant here how many jobs can be scheduled at the same time
+</I>&gt;<i> on the same CPU (just one or also more). But maybe this is out of scope
+</I>&gt;<i> of your model.
+</I>
+Ah, ok. Yes, this is currently out of scope. But it can easily be added 
+to the workload generator.
+
+&gt;<i> Let me know what you think about all these ideas. In the meanwhile, I
+</I>&gt;<i> will read the documentation of your tool, when it appears on the project
+</I>&gt;<i> webpage.
+</I>
+Uhh, it is dangerous to wait for the documentation ;-) I need to get the 
+API documentation complete. But the script is so simple that you may 
+want to check the workloadgen.rb file.
+
+Cheers,
+Mathias
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	
+	<LI>Next message: <A HREF="000001.html">[Cgwg-developer] Re: Grid workload generator
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#0">[ date ]</a>
+              <a href="thread.html#0">[ thread ]</a>
+              <a href="subject.html#0">[ subject ]</a>
+              <a href="author.html#0">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/cgwg-developer">More information about the Cgwg-developer
+mailing list</a><br>
+</body></html>

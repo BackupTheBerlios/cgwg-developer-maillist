@@ -1,0 +1,561 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Cgwg-developer] Workflow Module for Calana, a draft
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/cgwg-developer/2006-March/index.html" >
+   <LINK REL="made" HREF="mailto:cgwg-developer%40lists.berlios.de?Subject=Re%3A%20%5BCgwg-developer%5D%20Workflow%20Module%20for%20Calana%2C%20a%20draft&In-Reply-To=%3C441EB48D.4000209%40gonium.net%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000002.html">
+   
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Cgwg-developer] Workflow Module for Calana, a draft</H1>
+    <B>Mathias Dalheimer</B> 
+    <A HREF="mailto:cgwg-developer%40lists.berlios.de?Subject=Re%3A%20%5BCgwg-developer%5D%20Workflow%20Module%20for%20Calana%2C%20a%20draft&In-Reply-To=%3C441EB48D.4000209%40gonium.net%3E"
+       TITLE="[Cgwg-developer] Workflow Module for Calana, a draft">md at gonium.net
+       </A><BR>
+    <I>Mon Mar 20 14:56:29 CET 2006</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000002.html">[Cgwg-developer] Workflow Module for Calana, a draft
+</A></li>
+        
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3">[ date ]</a>
+              <a href="thread.html#3">[ thread ]</a>
+              <a href="subject.html#3">[ subject ]</a>
+              <a href="author.html#3">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi all!
+
+Marek, thank you for your effort. I think you just wrote a huge 
+workplan, and I am concerned on how we should start to implement this 
+all. But we'll see. I make my other comments inline...
+
+Marek Wieczorek wrote:
+&gt;<i> Dear Calana developers,
+</I>&gt;<i> 
+</I>&gt;<i> I did first basic tests with Calana, and I was thinking about possible
+</I>&gt;<i> extensions of the tool in order to consider also workflow load and
+</I>&gt;<i> support workflow schedulers. I prepared a first draft where I collected
+</I>&gt;<i> all my ideas, including a proposed system architecture and a list of
+</I>&gt;<i> tasks which, IMHO, should be done in order to implement the system. I
+</I>&gt;<i> attach the draft which I hope would be a good starting point to the
+</I>&gt;<i> discussion about possible future development of the tool in this direction.
+</I>&gt;<i>  Basically, I see Calana as a toolkit for grid scheduler evaluation. In
+</I>&gt;<i> case of a workflow scheduler like mine, it also means that a simulator
+</I>&gt;<i> should be an important part of the toolkit. In the draft I specified how
+</I>&gt;<i> I see interaction between different elements of a system, and also
+</I>&gt;<i> proposed some extension to the existing XML schema in order to support
+</I>&gt;<i> workflows. I send an example XML data file rather than an XML schema
+</I>&gt;<i> specification, also because I find the former more appropriate to
+</I>&gt;<i> explain my ideas.
+</I>
+Regarding the simulator: I think I can make the simulation of calana a 
+part of CGWG. We are here in the state of finishing the simulation's 
+implementation.
+
+
+&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> 
+</I>&gt;<i> Proposed architecture:
+</I>&gt;<i> 
+</I>&gt;<i> -------------   /
+</I>&gt;<i> | Workload  |   / Existing workload generator.
+</I>&gt;<i> | Generator |   /
+</I>&gt;<i> -------------   /
+</I>&gt;<i>       |
+</I>&gt;<i>       v
+</I>&gt;<i>     grid
+</I>&gt;<i>   workload
+</I>&gt;<i>       |
+</I>&gt;<i>       v
+</I>&gt;<i> ------------    / Generates workflow load.
+</I>&gt;<i> | Workflow |    / Adds workflows to the workload, by replacing parts of
+</I>&gt;<i> |  Module  |    / the sequential workload with equivalent amount of workflow
+</I>&gt;<i> ------------    / load.
+</I>&gt;<i>       |
+</I>&gt;<i>       v
+</I>&gt;<i> grid workload
+</I>&gt;<i>  including
+</I>&gt;<i>  workflows
+</I>&gt;<i>       |
+</I>&gt;<i>       v
+</I>&gt;<i> -------------   /
+</I>&gt;<i> | Workflow  |   / Optional component. For instance, my scheduler.
+</I>&gt;<i> | Scheduler |   /
+</I>&gt;<i> -------------   /
+</I>&gt;<i>       |
+</I>&gt;<i>       v
+</I>&gt;<i>   partially
+</I>&gt;<i>   scheduled
+</I>&gt;<i>    workload
+</I>&gt;<i>   (only some
+</I>&gt;<i> workflows are
+</I>&gt;<i>   scheduled)
+</I>&gt;<i>       |
+</I>&gt;<i>       v
+</I>&gt;<i> -------------   /
+</I>&gt;<i> | Workload  |   / Existing scheduler.
+</I>&gt;<i> | Scheduler |   /
+</I>&gt;<i> -------------   /
+</I>&gt;<i>       |
+</I>&gt;<i>       v
+</I>&gt;<i> fully scheduled
+</I>&gt;<i>   workload
+</I>&gt;<i>       |
+</I>&gt;<i>       v
+</I>&gt;<i> -------------   / Extended version of the existing simulator:
+</I>&gt;<i> | Simulator |   / recognizes dependencies and data transfers.
+</I>&gt;<i> -------------   / Integrated with ns-2
+</I>
+
+The workload scheduler and the simulation are an integral part of 
+software right now. Although the integration of network and data 
+transfers are out of scope for now, it will become important in the 
+future. We already have the notion of a &quot;task&quot; which can include data 
+transfers and jobs.
+
+&gt;<i> 
+</I>&gt;<i> Tasks to be done:
+</I>&gt;<i> -----------------
+</I>&gt;<i> 
+</I>&gt;<i> 1.To define the XML Schema for the problem.
+</I>&gt;<i> -------------
+</I>&gt;<i> 
+</I>&gt;&gt;<i>Importance:
+</I>&gt;<i> 
+</I>&gt;<i> -------------
+</I>&gt;<i> crucial
+</I>&gt;<i> --------------
+</I>&gt;<i> 
+</I>&gt;&gt;<i>Description:
+</I>&gt;<i> 
+</I>&gt;<i> --------------
+</I>&gt;<i> To specify the full schema to be applied in Calana.
+</I>&gt;<i> The schema may include the specification of:
+</I>&gt;<i> * grid nodes,
+</I>&gt;<i> * data links,
+</I>&gt;<i> * computational tasks,
+</I>&gt;<i> * data transfer tasks,
+</I>&gt;<i> * workflows,
+</I>&gt;<i> * cost evaluation.
+</I>&gt;<i> -------------------
+</I>&gt;<i> 
+</I>&gt;&gt;<i>Estimated effort:
+</I>&gt;<i> 
+</I>&gt;<i> -------------------
+</I>&gt;<i> small; can be based on the attached draft
+</I>
+I hesitate to define a schema for grid nodes and data links. This is 
+currently done within the simulator in the form of java code. I would 
+like to leave it this way because it is not clear to me what kind of 
+setup will be used by different groups. Therefore, I choose not to 
+implement a resource description language - scripting is just more 
+flexible here. But I agree with the principles of your network and 
+compute resource description.
+
+For the other parts: We have a notion of computational tasks. Data 
+transfer tasks should be simple to do (your notion is fine to me). I 
+would like to suggest that you deal with the workflows, based on your 
+experience.
+
+Regarding the cost evaluation: In some cases of calana setups, you use 
+dynamic pricing for the experiments. Since pricing includes strategies 
+on how to compose prices, I would strongly vote against a fixed notion 
+on pricing issues. It seems to be really complex to do pricing. But 
+maybe I got this wrong: Is the executioncost tag your description of the 
+user's preference? This would be fine for me (actually, the current 
+implementation does something like that).
+
+Same goes for reservations. This is - in my mind - something the 
+scheduler should dynamically decide, therefore it should not be encoded 
+in the workload generator.
+
+&gt;<i> 
+</I>&gt;<i> 2.To implement the Workflow Module.
+</I>&gt;<i> -------------
+</I>&gt;<i> 
+</I>&gt;&gt;<i>Importance:
+</I>&gt;<i> 
+</I>&gt;<i> -------------
+</I>&gt;<i> crucial
+</I>&gt;<i> --------------
+</I>&gt;<i> 
+</I>&gt;&gt;<i>Description:
+</I>&gt;<i> 
+</I>&gt;<i> --------------
+</I>&gt;<i> To implement a component which reads grid workload generated by the Generator
+</I>&gt;<i> and replaces parts of it with some workflow load, in the way that the output
+</I>&gt;<i> load is equivalent to the input load with respect to the workload level.
+</I>&gt;<i>  I believe, this approach would simulate the real grid behavior quite
+</I>&gt;<i> realistically.
+</I>&gt;<i> -------------------
+</I>&gt;<i> 
+</I>&gt;&gt;<i>Estimated effort:
+</I>&gt;<i> 
+</I>&gt;<i> -------------------
+</I>&gt;<i> small
+</I>
+I think this would be really beneficial to the current implementation!
+
+
+&gt;<i> 3.To implement workflow processing in the Scheduler and the Simulator.
+</I>&gt;<i> -------------
+</I>&gt;<i> 
+</I>&gt;&gt;<i>Importance:
+</I>&gt;<i> 
+</I>&gt;<i> -------------
+</I>&gt;<i> crucial
+</I>&gt;<i> --------------
+</I>&gt;<i> 
+</I>&gt;&gt;<i>Description:
+</I>&gt;<i> 
+</I>&gt;<i> --------------
+</I>&gt;<i> To consider dependencies between tasks when scheduling and simulating.
+</I>&gt;<i> -------------------
+</I>&gt;<i> 
+</I>&gt;&gt;<i>Estimated effort:
+</I>&gt;<i> 
+</I>&gt;<i> -------------------
+</I>&gt;<i> small/moderate
+</I>
+This is currently not implemented in the simulation of calana. But as 
+you said, it should not be so difficult to add.
+
+
+
+&gt;<i> 
+</I>&gt;<i> 4.To consider network traffic in the Workflow Scheduler and the Simulator.
+</I>&gt;<i> -------------
+</I>&gt;<i> 
+</I>&gt;&gt;<i>Importance:
+</I>&gt;<i> 
+</I>&gt;<i> -------------
+</I>&gt;<i> necessary
+</I>&gt;<i> --------------
+</I>&gt;<i> 
+</I>&gt;&gt;<i>Description:
+</I>&gt;<i> 
+</I>&gt;<i> --------------
+</I>&gt;<i> To consider data transfer tasks when scheduling and simulating. Integration
+</I>&gt;<i> with ns-2.
+</I>&gt;<i>  Specification of the grid infrastructure is generated for ns-2, based on the
+</I>&gt;<i> available XML description. The Simulator queries ns-2 each time when data
+</I>&gt;<i> transfer times should be estimated.
+</I>&gt;<i> -------------------
+</I>&gt;<i> 
+</I>&gt;&gt;<i>Estimated effort:
+</I>&gt;<i> 
+</I>&gt;<i> -------------------
+</I>&gt;<i> considerable, but not huge
+</I>
+Currently, this is not implemented as well. I have no idea how to 
+describe TCP connections, but I think it is simply a matter of finding 
+the right person to ask ;-)
+
+&gt;<i> 
+</I>&gt;<i> 5.To consider advance reservation in the Scheduler and the Simulator.
+</I>&gt;<i> -------------
+</I>&gt;<i> 
+</I>&gt;&gt;<i>Importance:
+</I>&gt;<i> 
+</I>&gt;<i> -------------
+</I>&gt;<i> optional
+</I>&gt;<i> --------------
+</I>&gt;<i> 
+</I>&gt;&gt;<i>Description:
+</I>&gt;<i> 
+</I>&gt;<i> --------------
+</I>&gt;<i> To consider advance reservations when scheduling and simulating.
+</I>&gt;<i> -------------------
+</I>&gt;<i> 
+</I>&gt;&gt;<i>Estimated effort:
+</I>&gt;<i> 
+</I>&gt;<i> -------------------
+</I>&gt;<i> small
+</I>
+Actually, this is already implemented in the calana simulation since we 
+need it for coallocating resources. However, you cannot ask for a 
+specific reservation time at the moment - the simulator just makes shure 
+you'll get reservations that are optimal to the users specification.
+
+
+&gt;<i> 
+</I>&gt;<i> 6.To implement event-driven workflow rescheduling.
+</I>&gt;<i> -------------
+</I>&gt;<i> 
+</I>&gt;&gt;<i>Importance:
+</I>&gt;<i> 
+</I>&gt;<i> -------------
+</I>&gt;<i> optional
+</I>&gt;<i> --------------
+</I>&gt;<i> 
+</I>&gt;&gt;<i>Description:
+</I>&gt;<i> 
+</I>&gt;<i> --------------
+</I>&gt;<i> It seems to be hard, but it would pay off. The idea is to include some
+</I>&gt;<i> contracts (probably only for execution time it would be feasible) to
+</I>&gt;<i> the workflow, which should be subsequently checked by the simulator. Whenever
+</I>&gt;<i> a contract is violated (an execution time is exceeded), rescheduling is
+</I>&gt;<i> triggered.
+</I>&gt;<i>  This feature would make the tool really unique.
+</I>&gt;<i> -------------------
+</I>&gt;<i> 
+</I>&gt;&gt;<i>Estimated effort:
+</I>&gt;<i> 
+</I>&gt;<i> -------------------
+</I>&gt;<i> large
+</I>
+
+With calana, this shouldn't be so hard because we already have a 
+protocol for this. But for us, this is out of scope for the moment.
+
+
+&gt;<i> 
+</I>&gt;<i> 
+</I>&gt;<i> ------------------------------------------------------------------------
+</I>&gt;<i> 
+</I>&gt;<i> &lt;!--
+</I>&gt;<i> Data links
+</I>&gt;<i> 
+</I>&gt;<i> Description:
+</I>&gt;<i> Data links in the grid.
+</I>&gt;<i> 
+</I>&gt;<i> Content:
+</I>&gt;<i> * 2 enpoints (2 grid nodes) in the link.
+</I>&gt;<i> * characteristics of the link (bandwidth, latency, ...)
+</I>&gt;<i> --&gt;
+</I>&gt;<i> &lt;dataLinks&gt;
+</I>&gt;<i> 	&lt;dataLink id=&quot;56&quot;&gt;
+</I>&gt;<i> 		&lt;endpointRef1&gt;
+</I>&gt;<i> 			&lt;gridNodeRef refID=&quot;45&quot;/&gt;
+</I>&gt;<i> 		&lt;/endpointRef1&gt;
+</I>&gt;<i> 		&lt;endpointRef2&gt;
+</I>&gt;<i> 			&lt;computationalNodeRef refID=&quot;45&quot;/&gt;
+</I>&gt;<i> 		&lt;/endpointRef2&gt;
+</I>&gt;<i> 		&lt;bandwidth value=&quot;10Mbps&quot;/&gt;
+</I>&gt;<i> 		&lt;latency value=&quot;10ms&quot;/&gt;
+</I>&gt;<i> 	&lt;/dataLink&gt;
+</I>&gt;<i> &lt;/dataLinks&gt;
+</I>&gt;<i> 
+</I>&gt;<i> &lt;!--
+</I>&gt;<i> Grid nodes
+</I>&gt;<i> 
+</I>&gt;<i> Description:
+</I>&gt;<i> Specification of the elements of the grid. The nodes can be either
+</I>&gt;<i> more generic &quot;grid nodes&quot; (i.e., a network hub), or more specific
+</I>&gt;<i> entities (networkSwitchNode, networkRouterNode, computationalNode, ...).
+</I>&gt;<i> I'm not sure which types of grid nodes are really needed.
+</I>&gt;<i> 
+</I>&gt;<i> Content:
+</I>&gt;<i> * empty?
+</I>&gt;<i> --&gt;
+</I>&gt;<i> &lt;gridNodes&gt;
+</I>&gt;<i> 	&lt;gridNode id=&quot;123&quot;/&gt;
+</I>&gt;<i> 	&lt;networkSwitch id=&quot;32&quot;/&gt;
+</I>&gt;<i> 	&lt;networkRouter id=&quot;43&quot;/&gt;
+</I>&gt;<i> 	&lt;computationalNode id=&quot;56&quot;/&gt;
+</I>&gt;<i> &lt;/gridNodes&gt;
+</I>&gt;<i> 
+</I>&gt;<i> &lt;!--
+</I>&gt;<i> Computational clusters
+</I>&gt;<i> 
+</I>&gt;<i> Description:
+</I>&gt;<i> A composite grid node, consisting of many computational nodes.
+</I>&gt;<i> 
+</I>&gt;<i> Content:
+</I>&gt;<i> * list of the computational nodes which are the components of the cluster.
+</I>&gt;<i> --&gt;
+</I>&gt;<i> &lt;computationalClusters&gt;
+</I>&gt;<i> 	&lt;computationalCluster&gt;
+</I>&gt;<i> 		&lt;computationalNodeRef refID=&quot;57&quot;/&gt;
+</I>&gt;<i> 		&lt;computationalNodeRef refID=&quot;80&quot;/&gt;
+</I>&gt;<i> 	&lt;/computationalCluster&gt;
+</I>&gt;<i> &lt;/computationalClusters&gt;
+</I>&gt;<i> 
+</I>&gt;<i> &lt;!--
+</I>&gt;<i> Network areas
+</I>&gt;<i> 
+</I>&gt;<i> Description:
+</I>&gt;<i> An auxiliary construct which facilitates the user to define data
+</I>&gt;<i> links between grid nodes (it's easier to specify a single
+</I>&gt;<i> &quot;network area&quot; for a cluster of 64 nodes than to specify all
+</I>&gt;<i> 64 links separately).
+</I>&gt;<i> 
+</I>&gt;<i> Content:
+</I>&gt;<i> * a list of computational nodes (single nodes or clusters),
+</I>&gt;<i> * characteristics of all the links (bandwidth, latency, ...)
+</I>&gt;<i> --&gt;
+</I>&gt;<i> &lt;dataLinks&gt;
+</I>&gt;<i> 	&lt;dataLink id=&quot;35&quot;&gt;
+</I>&gt;<i> 		&lt;endpointRefs&gt;
+</I>&gt;<i> 			&lt;computationalNodeRef refID=&quot;45&quot;/&gt;
+</I>&gt;<i> 			&lt;computationalNodeRef refID=&quot;45&quot;/&gt;
+</I>&gt;<i> 			&lt;computationalClusterRef refID=&quot;45&quot;/&gt;
+</I>&gt;<i> 			&lt;computationalNodeRef refID=&quot;45&quot;/&gt;
+</I>&gt;<i> 		&lt;/endpointRefs&gt;
+</I>&gt;<i> 		&lt;bandwidth value=&quot;10Mbps&quot;/&gt;
+</I>&gt;<i> 		&lt;latency value=&quot;10ms&quot;/&gt;
+</I>&gt;<i> 	&lt;/dataLink&gt;
+</I>&gt;<i> &lt;/dataLinks&gt;
+</I>&gt;<i> 
+</I>&gt;<i> &lt;!--
+</I>&gt;<i> Data transfers
+</I>&gt;<i> 
+</I>&gt;<i> Description:
+</I>&gt;<i> Data transfers between grid nodes.
+</I>&gt;<i> 
+</I>&gt;<i> Content:
+</I>&gt;<i> * data size,
+</I>&gt;<i> * 2 jobs (source and sink) between which the transfer is performed
+</I>&gt;<i> --&gt;
+</I>&gt;<i> &lt;dataTransfers&gt;
+</I>&gt;<i> 	&lt;dataTransfer id=&quot;85&quot;&gt;
+</I>&gt;<i> 		&lt;dataSize value=&quot;10MB&quot;/&gt;
+</I>&gt;<i> 		&lt;sourceJob&gt;
+</I>&gt;<i> 			&lt;jobRef refID=&quot;14&quot;/&gt;
+</I>&gt;<i> 		&lt;/sourceJob&gt;
+</I>&gt;<i> 		&lt;sinkJob&gt;
+</I>&gt;<i> 			&lt;jobRef refID=&quot;52&quot;/&gt;
+</I>&gt;<i> 		&lt;/sinkJob&gt;
+</I>&gt;<i> 	&lt;/dataTransfer&gt;
+</I>&gt;<i> &lt;/dataTransfers&gt;
+</I>&gt;<i> 
+</I>&gt;<i> &lt;!--
+</I>&gt;<i> Dependencies
+</I>&gt;<i> 
+</I>&gt;<i> Description:
+</I>&gt;<i> Dependency between 2 nodes (tasks or data transfers) within a workflow.
+</I>&gt;<i> 
+</I>&gt;<i> Content:
+</I>&gt;<i> * references to the begin node and to the end node of the dependence,
+</I>&gt;<i> --&gt;
+</I>&gt;<i> &lt;dependencies&gt;
+</I>&gt;<i> 	&lt;dependence id=&quot;85&quot;&gt;
+</I>&gt;<i> 		&lt;beginNodeRef refID=&quot;63&quot;/&gt;
+</I>&gt;<i> 		&lt;endNodeRef refID=&quot;96&quot;/&gt;
+</I>&gt;<i> 	&lt;/dependence&gt;
+</I>&gt;<i> &lt;/dependencies&gt;
+</I>&gt;<i> 
+</I>&gt;<i> &lt;!--
+</I>&gt;<i> Workflows
+</I>&gt;<i> 
+</I>&gt;<i> Description:
+</I>&gt;<i> A workflow composed of tasks, data transfers, and dependencies between them.
+</I>&gt;<i> 
+</I>&gt;<i> Content:
+</I>&gt;<i> * set of all tasks,
+</I>&gt;<i> * set of all data transfers,
+</I>&gt;<i> * set of all dependencies.
+</I>&gt;<i> --&gt;
+</I>&gt;<i> &lt;workflows&gt;
+</I>&gt;<i> 	&lt;workflow id=&quot;74&quot;&gt;
+</I>&gt;<i> 		&lt;tasks&gt;
+</I>&gt;<i> 			&lt;taskRef id=&quot;59&quot;/&gt;
+</I>&gt;<i> 			&lt;taskRef id=&quot;70&quot;/&gt;
+</I>&gt;<i> 		&lt;/tasks&gt;
+</I>&gt;<i> 		&lt;dataTransfers&gt;
+</I>&gt;<i> 			&lt;dataTransferRef id=&quot;48&quot;/&gt;
+</I>&gt;<i> 			&lt;dataTransferRef id=&quot;37&quot;/&gt;
+</I>&gt;<i> 		&lt;/dataTransfers&gt;
+</I>&gt;<i> 		&lt;dependencies&gt;
+</I>&gt;<i> 			&lt;dependenceRef id=&quot;26&quot;/&gt;
+</I>&gt;<i> 			&lt;dependenceRef id=&quot;62&quot;/&gt;
+</I>&gt;<i> 		&lt;/dependencies&gt;
+</I>&gt;<i> 	&lt;/workflow&gt;
+</I>&gt;<i> &lt;/workflows&gt;
+</I>&gt;<i> 
+</I>&gt;<i> &lt;!--
+</I>&gt;<i> Execution costs
+</I>&gt;<i> 
+</I>&gt;<i> Description:
+</I>&gt;<i> Costs of execution of different tasks on different resources, with regards
+</I>&gt;<i> to different evaluation metrics (execution time, economic cost, reliability).
+</I>&gt;<i> 
+</I>&gt;<i> Content:
+</I>&gt;<i> * task for which the cost is specified,
+</I>&gt;<i> * execution costs for different computational nodes,
+</I>&gt;<i>   * reference to a node (single node or a cluster) where the task can be executed
+</I>&gt;<i>   * execution costs with respect to different metrics
+</I>&gt;<i>   	* metric name,
+</I>&gt;<i>   	* execution cost.
+</I>&gt;<i> --&gt;
+</I>&gt;<i> &lt;executionCosts&gt;
+</I>&gt;<i> 	&lt;executionCost&gt;
+</I>&gt;<i> 		&lt;taskRef refID=&quot;36&quot;/&gt;
+</I>&gt;<i> 		&lt;computationalNodeVariants&gt;
+</I>&gt;<i> 			&lt;computationalNodeVariant&gt;
+</I>&gt;<i> 				&lt;computationalNodeRef refID=&quot;28&quot;/&gt;
+</I>&gt;<i> 				&lt;metricVariants&gt;
+</I>&gt;<i> 					&lt;metricVariant&gt;
+</I>&gt;<i> 						&lt;metricName value=&quot;ExecutionTime&quot;/&gt;
+</I>&gt;<i> 						&lt;value value=&quot;1000&quot;/&gt;
+</I>&gt;<i> 					&lt;/metricVariant&gt;
+</I>&gt;<i> 					&lt;metricVariant&gt;
+</I>&gt;<i> 						&lt;metricName value=&quot;EconomicCost&quot;/&gt;
+</I>&gt;<i> 						&lt;value value=&quot;100&quot;/&gt;
+</I>&gt;<i> 					&lt;/metricVariant&gt;
+</I>&gt;<i> 				&lt;/metricVariants&gt;
+</I>&gt;<i> 			&lt;/computationalNodeVariant&gt;
+</I>&gt;<i> 		&lt;/computationalNodeVariants&gt;
+</I>&gt;<i> 	&lt;/executionCost&gt;
+</I>&gt;<i> &lt;/executionCosts&gt;
+</I>&gt;<i> 
+</I>&gt;<i> &lt;!--
+</I>&gt;<i> Computational node reservations
+</I>&gt;<i> 
+</I>&gt;<i> Description:
+</I>&gt;<i> Reservation of a particular computational node for a particular user within
+</I>&gt;<i> a particular time interval.
+</I>&gt;<i> 
+</I>&gt;<i> Content:
+</I>&gt;<i> * computational resource (single resource of a cluster),
+</I>&gt;<i> * user for whom the resource is reserved,
+</I>&gt;<i> * begin and end time of the reservation.
+</I>&gt;<i> --&gt;
+</I>&gt;<i> &lt;computationalNodeReservations&gt;
+</I>&gt;<i> 	&lt;computationalNodeReservation&gt;
+</I>&gt;<i> 		&lt;gridNodeRef&gt;
+</I>&gt;<i> 			&lt;computationalNodeRef refID=&quot;39&quot;/&gt;
+</I>&gt;<i> 		&lt;/gridNodeRef&gt;
+</I>&gt;<i> 		&lt;userRef refID=&quot;62&quot;/&gt;
+</I>&gt;<i> 		&lt;beginTime value=&quot;2006-07-12 12:34:45&quot;/&gt;
+</I>&gt;<i> 		&lt;endTime value=&quot;2006-07-13 21:43:54&quot;/&gt;
+</I>&gt;<i> 	&lt;/computationalNodeReservation&gt;
+</I>&gt;<i> &lt;/computationalNodeReservations&gt;
+</I>
+
+-- 
+Wenn Word f&#252;r l&#228;ngere Texte gedacht w&#228;re, w&#252;rde es Book heissen.
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000002.html">[Cgwg-developer] Workflow Module for Calana, a draft
+</A></li>
+	
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#3">[ date ]</a>
+              <a href="thread.html#3">[ thread ]</a>
+              <a href="subject.html#3">[ subject ]</a>
+              <a href="author.html#3">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/cgwg-developer">More information about the Cgwg-developer
+mailing list</a><br>
+</body></html>

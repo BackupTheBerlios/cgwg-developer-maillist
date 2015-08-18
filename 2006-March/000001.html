@@ -1,0 +1,161 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML>
+ <HEAD>
+   <TITLE> [Cgwg-developer] Re: Grid workload generator
+   </TITLE>
+   <LINK REL="Index" HREF="http://lists.berlios.de/pipermail/cgwg-developer/2006-March/index.html" >
+   <LINK REL="made" HREF="mailto:cgwg-developer%40lists.berlios.de?Subject=Re%3A%20%5BCgwg-developer%5D%20Re%3A%20Grid%20workload%20generator&In-Reply-To=%3C1141987635.4411593324baa%40web-mail1.uibk.ac.at%3E">
+   <META NAME="robots" CONTENT="index,nofollow">
+   <style type="text/css">
+       pre {
+           white-space: pre-wrap;       /* css-2.1, curent FF, Opera, Safari */
+           }
+   </style>
+   <META http-equiv="Content-Type" content="text/html; charset=us-ascii">
+   <LINK REL="Previous"  HREF="000000.html">
+   <LINK REL="Next"  HREF="000002.html">
+ </HEAD>
+ <BODY BGCOLOR="#ffffff">
+   <H1>[Cgwg-developer] Re: Grid workload generator</H1>
+    <B>Marek Wieczorek</B> 
+    <A HREF="mailto:cgwg-developer%40lists.berlios.de?Subject=Re%3A%20%5BCgwg-developer%5D%20Re%3A%20Grid%20workload%20generator&In-Reply-To=%3C1141987635.4411593324baa%40web-mail1.uibk.ac.at%3E"
+       TITLE="[Cgwg-developer] Re: Grid workload generator">Marek.Wieczorek at uibk.ac.at
+       </A><BR>
+    <I>Fri Mar 10 11:47:15 CET 2006</I>
+    <P><UL>
+        <LI>Previous message: <A HREF="000000.html">[Cgwg-developer] Re: Grid workload generator
+</A></li>
+        <LI>Next message: <A HREF="000002.html">[Cgwg-developer] Workflow Module for Calana, a draft
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1">[ date ]</a>
+              <a href="thread.html#1">[ thread ]</a>
+              <a href="subject.html#1">[ subject ]</a>
+              <a href="author.html#1">[ author ]</a>
+         </LI>
+       </UL>
+    <HR>  
+<!--beginarticle-->
+<PRE>Hi Mathias,
+
+Thanks for the comments. I try to answer your questions below.
+
+Quoting Mathias Dalheimer &lt;<A HREF="https://lists.berlios.de/mailman/listinfo/cgwg-developer">dalheimer at itwm.fhg.de</A>&gt;:
+
+&gt;<i> &gt; The scheduler which I am
+</I>&gt;<i> &gt; working on is a higher-level look-ahead &quot;metascheduler&quot;, which tries to
+</I>&gt;<i> &gt; schedule full workflows in advance. So if I had to put my scheduler into
+</I>&gt;<i> &gt; the sequence above, I would put it as a source of the workflow
+</I>&gt;<i> &gt; description (MY_SCHEDULER -&gt; workflow description -&gt; ...), what is
+</I>&gt;<i> &gt; consistent with you definition of the workflow module (&quot;it integrates a
+</I>&gt;<i> &gt; workflow description as it would occur as the user's input&quot;), with the
+</I>&gt;<i> &gt; exception that it makes also scheduling decisions at the same time. Of
+</I>&gt;<i> &gt; course, the workflow module would be separated from the meta-scheduler.
+</I>&gt;<i> &gt; In that case, the sequence would be as follows:
+</I>&gt;<i> &gt;
+</I>&gt;<i> &gt; GENERATOR (only sequential jobs) -&gt; WORKFLOW MODULE or alternatively MY
+</I>&gt;<i> &gt; SCHEDULER -&gt; YOUR SCHEDULER -&gt;
+</I>&gt;<i>
+</I>&gt;<i> So the output of your scheduler is a submission list of jobs? How does
+</I>&gt;<i> this work? Do you rely on another scheduler? I would have expected the
+</I>&gt;<i> following:
+</I>&gt;<i>
+</I>&gt;<i> GENERATOR -&gt; WORKFLOW MODULE -&gt; workload description -&gt; YOUR SCHEDULER
+</I>&gt;<i> -&gt; scheduling log -&gt; ANALYSIS
+</I>&gt;<i>
+</I>
+The point here is that my scheduler is not integrated with any simulator, and
+relies on an underlying environment even more than yours. I would say that it
+is a &quot;workflow-oriented&quot; scheduler rather than a &quot;workload-oriented&quot; one. I
+mean here that a single scheduler instance is responsible for scheduling of a
+single workflow, being not aware of the other background workload being
+generated on the Grid.
+ In this case, I can imagine that my scheduler generates some workload which
+would be subsequently processed by another scheduler (for instance yours)
+without changing main mapping decisions. The output from your
+scheduler/simulator would give me all information which I need. Analysis of the
+output from my scheduler would not allow me to evaluate my scheduling properly,
+since it does not consider the external load which can affect the execution.
+ I would think about my scheduler as an [optional] part of the workflow module.
+
+&gt;<i> &gt;
+</I>&gt;<i> &gt; From my point of view, it would be important to be able to be use my
+</I>&gt;<i> &gt; scheduler instead of the workflow module. In that case, the scheduling
+</I>&gt;<i> &gt; would be done for some of the jobs already on this stage. Your scheduler
+</I>&gt;<i> &gt; would not change these decisions, but only would take them into
+</I>&gt;<i> &gt; consideration and include them to the scheduling log. It that way, I
+</I>&gt;<i> &gt; would have opportunity to evaluate my scheduling, by evaluating your logs.
+</I>&gt;<i> &gt; Let me know if I misunderstood something about your approach.
+</I>&gt;<i>
+</I>&gt;<i> This depends on the following: If your scheduler depends on a low-level
+</I>&gt;<i> scheduler, this is fine. But I could also imagine that your replace my
+</I>&gt;<i> scheduler with whatever implementation you want, e.g. a maui in
+</I>&gt;<i> simulation mode. The workload generator should just be a piece of
+</I>&gt;<i> software that generates workload files with different load levels. These
+</I>&gt;<i> files can then be reused as input to any other system (which probably
+</I>&gt;<i> needs to be wrapped in a parser...). It should be independent of the way
+</I>&gt;<i> people evaluate their schedulers (using simulations, or using a real
+</I>&gt;<i> production environment where they inject the workload jobs).
+</I>&gt;<i>
+</I>
+The situation in my group is the following: the scheduler is a part of a bigger
+system, and produces schedules for a real execution engine. I'm not really
+happy to be so strictly dependent on the real production environment, because
+it limits my activities and does not allow me to evaluate my scheduler
+properly. Therefore, I like very much the idea of developing a more generic
+workflow representation which can be accepted by your environment and by my
+scheduler at the same time. As you wrote, it would make me independent of the
+underlying environment, and would allow me to test my scheduler more properly.
+
+&gt;<i>
+</I>&gt;<i> Not at the moment, but this will be an issue sooner or later. I am not
+</I>&gt;<i> sure how to model this yet: The scheduler's decisions may change the
+</I>&gt;<i> network load during the simulation. Therefore, we would need a way of
+</I>&gt;<i> keeping the current network state during the simulation available and
+</I>&gt;<i> dynamic. I am thinking of having a communication between the network
+</I>&gt;<i> simulator (probably ns-2) and my scheduler simulation:
+</I>&gt;<i>
+</I>&gt;<i>
+</I>&gt;<i> ---------   -- current network load info ---&gt;	-------------
+</I>&gt;<i> | ns-2  |                                       | calana    |
+</I>&gt;<i> ---------   &lt;--- change in network usage ----   -------------
+</I>&gt;<i>
+</I>&gt;<i> So I am not sure whether this should be part of the workload description
+</I>&gt;<i> or another little program that can be configured. If you have any ideas
+</I>&gt;<i> on this, I would love to hear them.
+</I>&gt;<i>
+</I>
+AFAIK, the problem here is that ns-2 does not work in an interactive mode, but
+rather in a batch mode. It allows to define a static network situation and
+simulate the trafic in such environment. However, we can think together about
+possible integration and prepare a draft solution for the ns-2 workshop this
+year.
+
+I'll try to spend some time learning how to use your tool. I'll let you know if
+I have any other ideas.
+
+cheers,
+Marek
+
+</PRE>
+
+<!--endarticle-->
+    <HR>
+    <P><UL>
+        <!--threads-->
+	<LI>Previous message: <A HREF="000000.html">[Cgwg-developer] Re: Grid workload generator
+</A></li>
+	<LI>Next message: <A HREF="000002.html">[Cgwg-developer] Workflow Module for Calana, a draft
+</A></li>
+         <LI> <B>Messages sorted by:</B> 
+              <a href="date.html#1">[ date ]</a>
+              <a href="thread.html#1">[ thread ]</a>
+              <a href="subject.html#1">[ subject ]</a>
+              <a href="author.html#1">[ author ]</a>
+         </LI>
+       </UL>
+
+<hr>
+<a href="https://lists.berlios.de/mailman/listinfo/cgwg-developer">More information about the Cgwg-developer
+mailing list</a><br>
+</body></html>
